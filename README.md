@@ -1,5 +1,5 @@
 # regex
-regex parser written in data-directed programming
+unfinished regex parser written in data-directed programming, it shows more of a how this approach can be done
 
 heavily inspired by SICP.
 
