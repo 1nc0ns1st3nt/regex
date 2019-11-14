@@ -1,9 +1,14 @@
 # regex
-unfinished regex parser written in data-directed programming, it shows more of a how this approach can be done
+unfinished regex parser written in data-directed programming
 
 heavily inspired by SICP.
 
-lexi.rkt utilizes two files, stream-oop & table, these two constructs are quite vital for the data-directed approach to work.
+lexi.rkt  
+It utilizes two files, stream-oop & table, these two constructs are quite vital for the data-directed approach to work.
+Showing how this approach can be done, and the design of the framework allows us to easily add and modify the "logic" without "touching" the core code.
+
+compile.rkt  
+unfinished regex evaluator
 
 example outputs:  
 ```
