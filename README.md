@@ -3,7 +3,7 @@ regex parser written in data-directed programming
 
 heavily inspired by SICP.
 
-lexi.rkt utilizes two files, stream-oop & table, there two constructs are quite vital for the data-directed approach to work.
+lexi.rkt utilizes two files, stream-oop & table, these two constructs are quite vital for the data-directed approach to work.
 
 example outputs:  
 ```
