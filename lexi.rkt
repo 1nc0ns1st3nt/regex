@@ -1,23 +1,15 @@
 (require "stream-oop.rkt"
          "operation-table.rkt")
-;; (define operation-table (make-table))
-;; (define get (operation-table 'lookup))
-;; (define put (operation-table 'insert!))
 
 (define (re/tag x y) (cons x y))
 
-(define (stream-next stream) ((stream 'read-char) 'done))
-(define (read-until stream c) ((stream 'read-until) c))
-
-(define (lexi stream char)
-  (let ((lexi-proc (get 'lexi char)))
-    (if lexi-proc
-        (lexi-proc stream char)
-        (re/tag 'char char))))
+(define (stream-next stm) ((stm 'read-char) 'done))
+(define (stream-read-until stm c)
+  (regex ((stm 'read-until) c)))
 
 (define (install-re-lexi)
-  (define (lexi-self stream c) (re/tag c c))
-  (define (lexi-repeat stream c) c)
+  (define (lexi-self stm c) 'self)
+  (define (lexi-repeat stm c) 'repeat)
   ;;
   (put 'lexi #\$ lexi-self)
   (put 'lexi #\^ lexi-self)
@@ -28,50 +20,68 @@
   (put 'lexi #\? lexi-repeat)
   ;;
   (put 'lexi #\|
-       (lambda (stream c) (re/tag c (lexi stream (stream-next stream)))))
-  (put 'lexi 'char
-       (lambda (stream c) (re/tag 'char c)))
+       (lambda (stm c)
+         (lexi stm (stream-next stm))))
+  ;; (put 'lexi 'char
+  ;;      (lambda (stm c)
+  ;;        (re/tag 'char c)))
   (put 'lexi #\[
-       (lambda (stream c) (re/tag c ((stream 'read-until) #\]))))
+       (lambda (stm c)
+         (stream-read-until stm #\])))
   (put 'lexi #\{
-       (lambda (stream c) (re/tag c ((stream 'read-until) #\}))))
+       (lambda (stm c)
+         (stream-read-until stm #\})))
   (put 'lexi #\(
-       (lambda (stream c) (re/tag c ((stream 'read-until) #\)))))
+       (lambda (stm c)
+         (stream-read-until stm #\))))
   (put 'lexi #\\
-       (lambda (stream c) (re/tag c (stream-next stream))))
+       (lambda (stm c)
+         (stream-next stm)))
   ;;
   'done)
 
 (define (install-re-parse)
   (define (parse-re/pop re acc)
-    (re/tag (cons re (car acc)) (cdr acc)))
-  (define (parse-re/brkt re acc)
-    (cons (parse/square-brkt re) acc))
+    "pop last to group together"
+    (cons (re/tag (car re) (car acc))
+          (cdr acc)))
+  ;;
   (put 'parse #\* parse-re/pop)
   (put 'parse #\+ parse-re/pop)
   (put 'parse #\? parse-re/pop)
-  (put 'parse #\| parse-re/pop)
+  (put 'parse #\|
+       (lambda (re acc)
+         (let ((re-op (car re))
+               (re-expr (cdr re)))
+           (cons (re/tag re-op
+                         (list (car acc) re-expr))
+                 (cdr acc)))))
   ;;
-  (put 'parse #\[ parse-square-brkt)
   'done)
+
+(define (lexi stm char)
+  (let ((lexi-proc (get 'lexi char)))
+    (if lexi-proc
+        (re/tag char (lexi-proc stm char))
+        (re/tag 'char char))))
 
 (define (parse lexical-re acc)
   (install-re-parse)
-  (define (parsable? x) (char? x))
-  (if (parsable? lexical-re)
-      (let ((parse-proc (get 'parse lexical-re)))
-        (if parse-proc
-            (parse-proc lexical-re acc)
-            (error "a proc is missing for re-type: PARSE" lexicla-re)))
-      (cons lexical-re acc)))
+  (let ((parse-proc (get 'parse (car lexical-re))))
+    (if parse-proc
+        (parse-proc lexical-re acc)
+        ;; (error "a proc is missing for re-type: PARSE"
+        ;;        lexical-re)
+        (cons lexical-re acc))))
 
-(define (analysis string)
+(define (regex string)
   (install-re-lexi)
-  (define stream (make-string-stream string))
+  (define stm (make-string-stream string))
   (define (iter acc)
-    (let ((c (stream-next stream)))
-      (if (eq? c 'done)
-          (reverse acc)
-          (iter (parse (lexi stream c) acc)))))
+    (if ((stm 'is-empty))
+        (reverse acc)
+        (let ((c (stream-next stm)))
+          (iter (parse (lexi stm c)
+                       acc)))))
   (iter '()))
 
