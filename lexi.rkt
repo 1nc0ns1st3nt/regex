@@ -1,3 +1,8 @@
+
+#lang racket
+
+(provide regex)
+
 (require "stream-oop.rkt"
          "operation-table.rkt")
 
@@ -22,9 +27,6 @@
   (put 'lexi #\|
        (lambda (stm c)
          (lexi stm (stream-next stm))))
-  ;; (put 'lexi 'char
-  ;;      (lambda (stm c)
-  ;;        (re/tag 'char c)))
   (put 'lexi #\[
        (lambda (stm c)
          (stream-read-until stm #\])))
