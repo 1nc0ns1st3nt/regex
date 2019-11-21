@@ -5,7 +5,7 @@ heavily inspired by SICP.
 
 lexi.rkt  
 It utilizes two files, stream-oop & table, these two constructs are quite vital for the data-directed approach to work.
-Showing how this approach can be done, and the design of the framework allows us to easily add and modify the "logic" without "touching" the core code.
+Showing how this approach can be done, and the design of the framework allows us to easily add and modify the "rules" without "touching" the lexical anaylsis code.
 
 compile.rkt  
 unfinished regex evaluator
